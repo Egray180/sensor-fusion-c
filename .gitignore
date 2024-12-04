@@ -1,0 +1,80 @@
+# Compiled object files, static and dynamic libs, binaries
+*.o
+*.obj
+*.so
+*.a
+*.dll
+*.lib
+*.exe
+
+# Build directories
+build/
+Build/
+bin/
+Bin/
+out/
+Out/
+
+# CMake build files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Auto-generated headers and source files
+*.h.gch
+*.h.generated.*
+*.c.generated.*
+*.cpp.generated.*
+
+# IDE specific files
+# CLion
+.idea/
+# Visual Studio
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.sln
+*.opensdf
+*.VC.db
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserstate
+
+# Debug files
+*.dSYM/
+*.stackdump
+
+# Temporary files and logs
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Cache and other system files
+*.cache
+Thumbs.db
+.DS_Store
+
+# Git-generated files
+*.orig
+
+# Coverage files
+*.gcno
+*.gcda
+*.gcov
+lcov-report/
+
+# Test outputs
+test_output/
+test_results/
+
+# Generated files (headers, sources, etc.)
+*.generated.*
+
+# Custom directories (add your custom build directory here)
+custom_build_dir/
