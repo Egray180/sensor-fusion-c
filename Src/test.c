@@ -62,7 +62,7 @@ void main() {
     fgets(line, sizeof(line), dataIn); // skip headers
     fgets(line, sizeof(line), dataIn); // first line
     D = fillData(line);
-    KalmanParams params = {5e-5, 5e-5, 1e-6, 1, 25e-4, 8e-4};
+    KalmanParams params = {5e-5, 5e-5, 1e-6, 1, 25e-4, 8e-4, 0.2};
     KalmanFilter* filter = init(params, D);
 
     // open file for writing filter ouput

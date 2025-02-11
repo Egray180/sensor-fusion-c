@@ -102,6 +102,8 @@ KalmanFilter* init(KalmanParams params ,dataBlock D) {
     tilt_error[2] = params.e_tilt;
     instance->BNO_tilt_error = tilt_error;
 
+    instance->att_thresh = params.att_thresh;
+
     return instance;
 }
 
@@ -504,32 +506,43 @@ void update(KalmanFilter* filter, dataBlock D) {
 
     if (mag < 1e-3) {
         return; // don't bother correcting if error is really small
-    }
-    float64_t scale = mag / sin(mag / 2);
-    float64_t tilt_error[] = {scale * q_mod.pData[0], scale * q_mod.pData[1], scale * q_mod.pData[2]};
+    } 
 
-    // Scale tilt error according to covariance
-    float64_t P_tilt_error[] = {filter->P.pData[9*6+6], filter->P.pData[9*7+7], filter->P.pData[9*8+8]};
-    tilt_error[0] = tilt_error[0] * P_tilt_error[0] / (P_tilt_error[0] + filter->BNO_tilt_error[0]);
-    tilt_error[1] = tilt_error[1] * P_tilt_error[1] / (P_tilt_error[1] + filter->BNO_tilt_error[1]);
-    tilt_error[2] = tilt_error[2] * P_tilt_error[2] / (P_tilt_error[2] + filter->BNO_tilt_error[2]);
-
-    // Update attitude
-    mag = sqrt(tilt_error[0]*tilt_error[0] + tilt_error[1]*tilt_error[1] + tilt_error[2]*tilt_error[2]);
-    scale = sin(mag / 2) / mag;
-    for (int i = 0; i < 3; i++) {
-        q_mod.pData[i] = scale * tilt_error[i];
-    }
-    q_mod.pData[3] = cos(mag / 2);
-    arm_mat_mult_f64(&Q_conj, &q_mod, &(filter->quat));
-
-    // Update covariance
     float64_t new_tilt_error[3];
-    for (int i = 0; i < 3; i++) {
-        if (P_tilt_error[i] <= filter->BNO_tilt_error[i]) {
-            new_tilt_error[i] = P_tilt_error[i];
-        } else {
+    float64_t P_tilt_error[] = {filter->P.pData[9*6+6], filter->P.pData[9*7+7], filter->P.pData[9*8+8]};
+    if (mag > filter->att_thresh) { // adopt BNO quaternions if discrepancy is too large
+        for (int i = 0; i < 4; i++) {
+            q_data[i] *= -1;
+        }
+        memcpy(filter->quat.pData, q_data, 4*sizeof(float64_t));
+        for (int i = 0; i < 3; i++) {
             new_tilt_error[i] = filter->BNO_tilt_error[i];
+        }
+    } else {
+        float64_t scale = mag / sin(mag / 2);
+        float64_t tilt_error[] = {scale * q_mod.pData[0], scale * q_mod.pData[1], scale * q_mod.pData[2]};
+
+        // Scale tilt error according to covariance
+        tilt_error[0] = tilt_error[0] * P_tilt_error[0] / (P_tilt_error[0] + filter->BNO_tilt_error[0]);
+        tilt_error[1] = tilt_error[1] * P_tilt_error[1] / (P_tilt_error[1] + filter->BNO_tilt_error[1]);
+        tilt_error[2] = tilt_error[2] * P_tilt_error[2] / (P_tilt_error[2] + filter->BNO_tilt_error[2]);
+
+        // Update attitude
+        mag = sqrt(tilt_error[0]*tilt_error[0] + tilt_error[1]*tilt_error[1] + tilt_error[2]*tilt_error[2]);
+        scale = sin(mag / 2) / mag;
+        for (int i = 0; i < 3; i++) {
+            q_mod.pData[i] = scale * tilt_error[i];
+        }
+        q_mod.pData[3] = cos(mag / 2);
+        arm_mat_mult_f64(&Q_conj, &q_mod, &(filter->quat));
+
+        float64_t new_tilt_error[3];
+        for (int i = 0; i < 3; i++) {
+            if (P_tilt_error[i] <= filter->BNO_tilt_error[i]) {
+                new_tilt_error[i] = P_tilt_error[i];
+            } else {
+                new_tilt_error[i] = filter->BNO_tilt_error[i];
+            }
         }
     }
     // Update P (zones A & C)

@@ -29,6 +29,7 @@ typedef struct {
     float64_t e_gps_alt;
     float64_t e_gps_v;
     float64_t e_tilt;
+    float64_t att_thresh;
 } KalmanParams;
 
 typedef struct {
@@ -47,6 +48,8 @@ typedef struct {
     arm_matrix_instance_f64 R;
     arm_matrix_instance_f64 H;
     float64_t* BNO_tilt_error;
+
+    float64_t att_thresh;
 
 } KalmanFilter;
 
