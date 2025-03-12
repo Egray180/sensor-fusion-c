@@ -536,7 +536,6 @@ void update(KalmanFilter* filter, dataBlock D) {
         q_mod.pData[3] = cos(mag / 2);
         arm_mat_mult_f64(&Q_conj, &q_mod, &(filter->quat));
 
-        float64_t new_tilt_error[3];
         for (int i = 0; i < 3; i++) {
             if (P_tilt_error[i] <= filter->BNO_tilt_error[i]) {
                 new_tilt_error[i] = P_tilt_error[i];
